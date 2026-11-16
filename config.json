@@ -1,0 +1,12 @@
+{
+  "threshold": 70,
+  "phd_threshold": 70,
+  "model_extract": "claude-haiku-5-5",
+  "model_score": "claude-sonnet-5-5",
+  "reason_language": "Persian",
+  "dutch_level": "improving (beginner to lower-intermediate)",
+  "lookback_days": 3,
+  "max_jobs_kept": 600,
+  "notify_dutch_required": true,
+  "academic_page_fetch": true
+}

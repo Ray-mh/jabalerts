@@ -1,0 +1,49 @@
+name: Check job alerts
+
+on:
+  # Main trigger: cron-job.org calls this every 10 minutes (see SETUP guide).
+  workflow_dispatch:
+  # Backup trigger in case the external one stops. Odd minutes avoid GitHub's busy :00.
+  schedule:
+    - cron: "13,43 * * * *"
+
+concurrency:
+  group: job-radar
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read alerts, score, notify
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CV_PROFILE: ${{ secrets.CV_PROFILE }}
+        run: python scripts/main.py
+
+      - name: Save results
+        run: |
+          git config user.name "job-radar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data data
+          if git diff --cached --quiet; then
+            echo "Nothing new."
+          else
+            git commit -m "Update job matches"
+            git pull --rebase
+            git push
+          fi

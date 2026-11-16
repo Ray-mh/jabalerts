@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Job Radar — Ray</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=Vazirmatn:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f0e8; --ink:#1d1b18; --muted:#6f6a61; --line:#d9d2c4; --card:#fbf9f4;
+    --accent:#c2462b; --phd:#2f5d50; --li:#1f4e8c; --in:#5b3a8c;
+    --red:#c2462b; --yellow:#c99a1e; --green:#3d7a4f; --grey:#9a948a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 24px 80px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:2px solid var(--ink);padding-bottom:18px}
+  h1{font:600 clamp(40px,7vw,76px)/.95 Fraunces,serif;letter-spacing:-.02em;margin:0}
+  h1 em{font-style:normal;color:var(--accent)}
+  .meta{color:var(--muted);font-size:13px;text-align:right}
+  nav{display:flex;gap:0;margin:28px 0 18px;border:1.5px solid var(--ink);border-radius:999px;width:max-content;max-width:100%;overflow:auto}
+  nav button{all:unset;cursor:pointer;padding:10px 20px;font-weight:500;white-space:nowrap}
+  nav button + button{border-left:1.5px solid var(--ink)}
+  nav button[aria-selected=true]{background:var(--ink);color:var(--paper)}
+  nav .n{font-size:12px;opacity:.65;margin-left:6px}
+  .tools{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:26px;color:var(--muted);font-size:13px}
+  .tools input[type=search]{font:inherit;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);min-width:220px;color:var(--ink)}
+  .tools label{display:flex;gap:6px;align-items:center;cursor:pointer}
+  .tools input[type=range]{accent-color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:10px;position:relative}
+  .card.new::before{content:"NEW";position:absolute;top:-9px;left:18px;background:var(--accent);color:#fff;font-size:10px;font-weight:600;letter-spacing:.08em;padding:2px 8px;border-radius:999px}
+  .top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+  .title{font:600 19px/1.25 Fraunces,serif;margin:0}
+  .org{color:var(--muted);font-size:13px}
+  .score{font:600 30px/1 Fraunces,serif;min-width:62px;text-align:right}
+  .score small{font-size:13px;color:var(--muted)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid currentColor;display:inline-flex;gap:6px;align-items:center}
+  .tag i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+  .tag.required{color:var(--red)} .tag.plus{color:var(--yellow)} .tag.english{color:var(--green)} .tag.unknown{color:var(--grey)}
+  .tag.plain{color:var(--muted);border-color:var(--line)}
+  .reason{font:14px/1.75 Vazirmatn,Inter,sans-serif;background:#f1ece2;border-radius:10px;padding:10px 12px;margin:0}
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:4px;font-size:12px;color:var(--muted)}
+  .foot a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1.5px solid var(--accent)}
+  .bar{height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+  .bar span{display:block;height:100%;background:var(--ink)}
+  .empty{padding:60px 0;text-align:center;color:var(--muted);font-family:Fraunces,serif;font-size:20px}
+  @media (max-width:600px){header{flex-direction:column;align-items:flex-start}.meta{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Job<br><em>Radar</em></h1>
+    <div class="meta">Matches for Ray’s CV · score ≥ 70<br><span id="updated">loading…</span></div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="phd" aria-selected="true">PhD positions<span class="n" id="n-phd"></span></button>
+    <button role="tab" data-tab="linkedin" aria-selected="false">LinkedIn<span class="n" id="n-linkedin"></span></button>
+    <button role="tab" data-tab="indeed" aria-selected="false">Indeed<span class="n" id="n-indeed"></span></button>
+  </nav>
+
+  <div class="tools">
+    <input type="search" id="q" placeholder="Search title, organisation, city…">
+    <label><input type="checkbox" id="hideRed"> Hide “Dutch required”</label>
+    <label>Min score <input type="range" id="min" min="70" max="100" step="5" value="70"> <b id="minv">70</b></label>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const DUTCH = {
+  required:["Dutch required","required"], plus:["Dutch is a plus","plus"],
+  english:["English only","english"], unknown:["Language unclear","unknown"]
+};
+let ALL = [], tab = "phd";
+
+function dataUrls(){
+  const urls = [];
+  const host = location.hostname, parts = location.pathname.split("/").filter(Boolean);
+  if (host.endsWith(".github.io")) {
+    const owner = host.split(".")[0];
+    const repo = parts[0] || host;  // project site or user site
+    urls.push(`https://raw.githubusercontent.com/${owner}/${repo}/main/docs/data/jobs.json?t=${Date.now()}`);
+  }
+  urls.push(`data/jobs.json?t=${Date.now()}`);
+  return urls;
+}
+
+async function load(){
+  for (const u of dataUrls()){
+    try { const r = await fetch(u, {cache:"no-store"}); if (r.ok) return await r.json(); } catch(e){}
+  }
+  return {jobs:[], updated:null};
+}
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ago = iso => {
+  const m = (Date.now() - new Date(iso)) / 60000;
+  if (m < 60) return `${Math.max(1, Math.round(m))} min ago`;
+  if (m < 1440) return `${Math.round(m/60)} h ago`;
+  return new Date(iso).toLocaleDateString("en-GB", {day:"numeric", month:"short"});
+};
+
+function render(){
+  const q = document.getElementById("q").value.toLowerCase().trim();
+  const hideRed = document.getElementById("hideRed").checked;
+  const min = +document.getElementById("min").value;
+  document.getElementById("minv").textContent = min;
+  for (const t of ["phd","linkedin","indeed"])
+    document.getElementById("n-"+t).textContent = ALL.filter(j => j.section === t).length;
+
+  const list = ALL.filter(j => j.section === tab && j.score >= min && !(hideRed && j.dutch === "required"))
+    .filter(j => !q || [j.title, j.organization, j.location].join(" ").toLowerCase().includes(q))
+    .sort((a,b) => b.found.localeCompare(a.found));
+
+  const grid = document.getElementById("grid");
+  if (!list.length){ grid.innerHTML = `<div class="empty">Nothing here yet — new matches appear automatically.</div>`; return; }
+  grid.innerHTML = list.map(j => {
+    const [label, cls] = DUTCH[j.dutch] || DUTCH.unknown;
+    const isNew = (Date.now() - new Date(j.found)) < 864e5;
+    return `<article class="card ${isNew ? "new" : ""}">
+      <div class="top">
+        <div><h2 class="title">${esc(j.title)}</h2>
+        <div class="org">${esc([j.organization, j.location].filter(Boolean).join(" · "))}</div></div>
+        <div class="score">${j.score}<small>%</small></div>
+      </div>
+      <div class="bar"><span style="width:${j.score}%"></span></div>
+      <div class="tags">
+        <span class="tag ${cls}"><i></i>${label}</span>
+        ${j.deadline ? `<span class="tag plain">Deadline ${esc(j.deadline)}</span>` : ""}
+        ${j.info === "title-only" ? `<span class="tag plain">Scored from title</span>` : ""}
+      </div>
+      ${j.reason ? `<p class="reason" dir="auto">${esc(j.reason)}</p>` : ""}
+      <div class="foot"><span>Found ${ago(j.found)}</span>${j.url ? `<a href="${esc(j.url)}" target="_blank" rel="noopener">Open vacancy →</a>` : ""}</div>
+    </article>`;
+  }).join("");
+}
+
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+  render();
+});
+["q","hideRed","min"].forEach(id => document.getElementById(id).addEventListener("input", render));
+
+load().then(d => {
+  ALL = d.jobs || [];
+  document.getElementById("updated").textContent = d.updated ? "Last check: " + ago(d.updated) : "No data yet";
+  render();
+});
+setInterval(() => load().then(d => { ALL = d.jobs || []; render(); }), 5 * 60 * 1000);
+</script>
+</body>
+</html>
